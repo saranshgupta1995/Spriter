@@ -70,7 +70,7 @@ class Spriter {
 
 class Spritter {
 
-    constructor(context, spriteSheet, spriteW, spriteH, globalFrameCount, globalFrameRate = 1) {
+    constructor(context, spriteSheet, spriteW, spriteH, globalFrameCount = 0, globalFrameRate = 1) {
         this.ctx = context;
         this.spriteSheet = spriteSheet;
         this.globalFrameRate = globalFrameRate;
@@ -80,18 +80,23 @@ class Spritter {
         this.spriteModes = {};
         this.spriteIndex = 0;
         this.currentFrameNumber = 0;
-        console.log(this);
     }
 
-    __getPascalCased(str){
+    __getPascalCased(str) {
         return str.slice(0, 1).toUpperCase() + str.slice(1)
     }
 
-    __getGlobalProp(prop){
+    __getGlobalProp(prop) {
         return 'global' + this.__getPascalCased(prop)
     }
 
-    __getPreferred(mode, prop){
+    /**
+     * @access private
+     * @memberof Spritter
+     * @param {String} mode The name of the animation mode
+     * @param {String} prop The name of the property
+     */
+    __getPreferred(mode, prop) {
         return this.spriteModes[mode][prop] || this[this.__getGlobalProp(prop)]
     }
 
@@ -103,7 +108,13 @@ class Spritter {
 
     addMode(mode, options) {
         this.spriteModes[mode] = options;
-        options.animName = mode
+        options.animName = mode;
+        options.followPath = !!options.pattern;
+        if (options.followPath) {
+            options.decodedPath = options.pattern.map(point => {
+                return [point[0] * this.__getPreferred(mode, 'spriteWidth'), point[1] * this.__getPreferred(mode, 'spriteHeight')]
+            })
+        }
     }
 
     /**
@@ -127,12 +138,13 @@ class Spritter {
      */
 
     next(context, opts) {
-        let { spriteStartX, animName, spriteStartY, frameX, frameY, frameW, frameH } = opts
+        let { spriteStartX, animName, spriteStartY, frameX, frameY, frameW, frameH, decodedPath, followPath } = opts
         let pos = this.updatePos(frameX, frameY);
         context.drawImage(
             this.spriteSheet,
-            spriteStartX + this.spriteIndex * this.__getPreferred(animName,'spriteWidth'),
-            spriteStartY,
+            decodedPath ? decodedPath[this.spriteIndex][0]
+                : spriteStartX + this.spriteIndex * this.__getPreferred(animName, 'spriteWidth'),
+            decodedPath ? decodedPath[this.spriteIndex][1] : spriteStartY,
             this.__getPreferred(animName, 'spriteWidth'),
             this.__getPreferred(animName, 'spriteHeight'),
             pos.x,
@@ -145,7 +157,7 @@ class Spritter {
             this.spriteIndex += 1;
             this.currentFrameNumber = 0;
         }
-        if (this.spriteIndex === this.globalFrameCount) {
+        if (this.spriteIndex === (followPath ? decodedPath.length : this.globalFrameCount)) {
             this.spriteIndex = 0;
             this.currentFrameNumber = 0;
         }

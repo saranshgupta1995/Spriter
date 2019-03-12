@@ -13,22 +13,19 @@ marioSprite.onload = () => {
 };
 
 let marioWalkRight = new Spriter(marioSprite, 32, 68, 32, 0, 2, 4);
-let dupMarioWalkRight = new Spritter(ctx, marioSprite, 32, 68, 2, 4);
+let dupMarioWalkRight = new Spritter(ctx, marioSprite, 32, 68, 1, 4);
 let frameCount = 0;
 
 dupMarioWalkRight.addMode('walkRight',{
-    spriteStartX: 32,
-    spriteStartY: 0,
     frameX: 100,
     frameY: 100,
-    frameW: 32,
-    frameH: 68,
+    pattern: [[1, 0], [2, 0], [3, 0], [2, 0]]
 })
 
 let initMarioWalkingAnimation = (speed) => {
 
     dupMarioWalkRight.updatePos = (x, y) => {
-        x += frameCount * speed
+        x += frameCount * speed;
         return { x, y }
     }
 
@@ -59,8 +56,8 @@ document.addEventListener('keydown',(e)=>{
     var allowedKeys ={
         
         'ArrowRight':()=>{
-            marioSpeed+=0.1;
-            initMarioWalkingAnimation(Math.min(10, marioSpeed));
+            marioSpeed+=0.2;
+            initMarioWalkingAnimation(Math.min(6, marioSpeed));
         },
         
         'ArrowLeft':()=>{
