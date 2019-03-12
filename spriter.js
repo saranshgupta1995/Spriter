@@ -78,6 +78,20 @@ class Spritter {
         this.globalSpriteWidth = spriteW;
         this.globalSpriteHeight = spriteH;
         this.spriteModes = {};
+        this.__resetFrameParams();
+        this.loc = {
+            x: 0,
+            y: 0
+        }
+        this.currentAnimMode = '';
+        this.data={};
+    }
+
+    setLocation(x, y) {
+        this.loc = { x, y };
+    }
+
+    __resetFrameParams(){
         this.spriteIndex = 0;
         this.currentFrameNumber = 0;
     }
@@ -100,14 +114,7 @@ class Spritter {
         return this.spriteModes[mode][prop] || this[this.__getGlobalProp(prop)]
     }
 
-    /**
-     * 
-     * @param {string} string mode 
-     * @param {Object} options 
-     */
-
-    addMode(mode, options) {
-        this.spriteModes[mode] = options;
+    __setupModeParams(options, mode) {
         options.animName = mode;
         options.followPath = !!options.pattern;
         if (options.followPath) {
@@ -118,14 +125,21 @@ class Spritter {
     }
 
     /**
-     * @param {Number} x 
-     * @param {Number} y
+     * 
+     * @param {string} string mode 
+     * @param {Object} options 
      */
-    updatePos(x, y) {
-        return { x, y }
+
+    addMode(mode, options) {
+        this.spriteModes[mode] = options;
+        this.__setupModeParams(options, mode);
     }
 
     playNext(mode) {
+        if (!(this.currentAnimMode === mode)){
+            this.__resetFrameParams();
+        }
+        this.currentAnimMode = mode;
         this.next(this.ctx, this.spriteModes[mode])
     }
 
@@ -138,8 +152,9 @@ class Spritter {
      */
 
     next(context, opts) {
-        let { spriteStartX, animName, spriteStartY, frameX, frameY, frameW, frameH, decodedPath, followPath } = opts
-        let pos = this.updatePos(frameX, frameY);
+        let { spriteStartX, animName, spriteStartY, frameW, frameH, decodedPath, followPath, positionFunction } = opts
+        let pos = positionFunction();
+        this.setLocation(pos.x, pos.y);
         context.drawImage(
             this.spriteSheet,
             decodedPath ? decodedPath[this.spriteIndex][0]
@@ -147,8 +162,8 @@ class Spritter {
             decodedPath ? decodedPath[this.spriteIndex][1] : spriteStartY,
             this.__getPreferred(animName, 'spriteWidth'),
             this.__getPreferred(animName, 'spriteHeight'),
-            pos.x,
-            pos.y,
+            this.loc.x,
+            this.loc.y,
             frameW || this.__getPreferred(animName, 'spriteWidth'),
             frameH || this.__getPreferred(animName, 'spriteHeight')
         );
