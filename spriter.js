@@ -1,75 +1,5 @@
 class Spriter {
 
-    constructor(
-        spriteSheet,
-        spriteW,
-        spriteH,
-        spriteStartX,
-        spriteStartY,
-        frameCount,
-        frameRate
-    ) {
-        this.spriteSheet = spriteSheet;
-        this.spriteIndex = 0;
-        this.spriteW = spriteW;
-        this.spriteH = spriteH;
-        this.spriteStartX = spriteStartX;
-        this.spriteStartY = spriteStartY;
-        this.frameCount = frameCount;
-        this.frameRate = frameRate;
-        this.currentFrameNumber = 0;
-        this.funcX = function (x) {
-            return x;
-        };
-        console.log(this);
-    }
-
-    updateX(x) {
-        return x;
-    }
-
-    /**
-     * @param {Number} x 
-     * @param {Number} y
-     */
-    updatePos(x, y) {
-        return { x, y }
-    }
-
-    /**
-     * @param {CanvasRenderingContext2D} context 
-     * @param {Number} frameX 
-     * @param {Number} frameY 
-     * @param {Number} frameW 
-     * @param {Number} frameH 
-     */
-    next(context, frameX, frameY, frameW, frameH) {
-        let pos = this.updatePos(frameX, frameY);
-        context.drawImage(
-            this.spriteSheet,
-            this.spriteStartX + this.spriteIndex * this.spriteW,
-            this.spriteStartY,
-            this.spriteW,
-            this.spriteH,
-            this.updateX(pos.x),
-            pos.y,
-            frameW,
-            frameH
-        );
-        this.currentFrameNumber += 1;
-        if (this.currentFrameNumber === this.frameRate) {
-            this.spriteIndex += 1;
-            this.currentFrameNumber = 0;
-        }
-        if (this.spriteIndex === this.frameCount) {
-            this.spriteIndex = 0;
-            this.currentFrameNumber = 0;
-        }
-    }
-}
-
-class Spritter {
-
     constructor(context, spriteSheet, spriteW, spriteH, globalFrameCount = 0, globalFrameRate = 1) {
         this.ctx = context;
         this.spriteSheet = spriteSheet;
@@ -84,14 +14,14 @@ class Spritter {
             y: 0
         }
         this.currentAnimMode = '';
-        this.data={};
+        this.data = {};
     }
 
     setLocation(x, y) {
         this.loc = { x, y };
     }
 
-    __resetFrameParams(){
+    __resetFrameParams() {
         this.spriteIndex = 0;
         this.currentFrameNumber = 0;
     }
@@ -106,7 +36,7 @@ class Spritter {
 
     /**
      * @access private
-     * @memberof Spritter
+     * @memberof Spriter
      * @param {String} mode The name of the animation mode
      * @param {String} prop The name of the property
      */
@@ -136,7 +66,8 @@ class Spritter {
     }
 
     playNext(mode) {
-        if (!(this.currentAnimMode === mode)){
+        this.ctx.clearRect(this.loc.x, this.loc.y, this.__getPreferred(mode, 'spriteWidth'), this.__getPreferred(mode, 'spriteHeight'))
+        if (!(this.currentAnimMode === mode)) {
             this.__resetFrameParams();
         }
         this.currentAnimMode = mode;
@@ -176,6 +107,29 @@ class Spritter {
             this.spriteIndex = 0;
             this.currentFrameNumber = 0;
         }
+    }
+
+    __getCurrentPreferred(prop) {
+        return this.__getPreferred(this.currentAnimMode, prop)
+    }
+
+
+    hasWithin = (x, y) => {
+        return (
+            (x > this.loc.x) && (x < this.loc.x + this.__getCurrentPreferred('spriteWidth'))
+            && (y > this.loc.y) && (y < this.loc.y + this.__getCurrentPreferred('spriteHeight'))
+        )
+    }
+
+    checkCollisionWith(targetElement) {
+
+        for (let i = 0; i < this.__getCurrentPreferred('spriteWidth'); i++) {
+            for (let j = 0; j < this.__getCurrentPreferred('spriteHeight'); j++) {
+                if (targetElement.hasWithin(this.loc.x + i, this.loc.y + j))
+                    return true
+            }
+        }
+        return false
     }
 
 }

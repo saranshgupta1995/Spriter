@@ -1,12 +1,16 @@
+var hasLeftCollided =false;
+var hasUpCollided =false;
+
 marioSpriter.setLocation(100, 300);
 marioSpriter.addMode('walkRight', {
     pattern: [[2, 0], [1, 0], [2, 0], [3, 0]],
     positionFunction: () => {
-        let x = marioSpriter.loc.x + 4;
+        let x = marioSpriter.loc.x + (hasLeftCollided?0: 4);
         let y = marioSpriter.loc.y;
         return { x, y }
     }
 })
+marioSpriter.playNext('walkRight', [])
 
 
 marioSpriter.addMode('walkLeft', {
@@ -20,7 +24,7 @@ marioSpriter.addMode('walkLeft', {
 
 marioSpriter.data.jumpAnim = {
     gravity: 0.1,
-    upThrust: -20,
+    upThrust: -30,
     jumpFrame: 0,
     alreadyJumping:false
 };
@@ -33,7 +37,7 @@ marioSpriter.addMode('jump', {
         jumpData.jumpFrame += 1;
         jumpData.alreadyJumping=true;
         let x = marioSpriter.loc.x;
-        let y = marioSpriter.loc.y + ((jumpData.upThrust) + (0.5 * jumpData.gravity * jumpData.jumpFrame * jumpData.jumpFrame));
+        let y = marioSpriter.loc.y + (hasUpCollided?0:((jumpData.upThrust) + (0.5 * jumpData.gravity * jumpData.jumpFrame * jumpData.jumpFrame)));
         return { x, y }
     }
 })
@@ -42,6 +46,7 @@ marioSpriter.addMode('jump', {
 var allowedKeys = {
 
     'ArrowRight': () => {
+        
         initMarioWalkingAnimation('walkRight');
     },
 
